@@ -12,7 +12,6 @@ export default function Search(props) {
                 onChange={(e) => props.setSearchValue(e.target.value)}
             />
         </div>
-        <h1>{props.searchValue}</h1>
     </div>
   )
 }
