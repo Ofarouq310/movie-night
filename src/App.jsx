@@ -4,6 +4,8 @@ import { hero, logo } from './assets/index'
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
 import { useDebounce } from 'react-use';
+import { updateSearchCount, getTrendingMovies } from './appwrite';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function App() {
   const [page, setPage] = useState(1);
@@ -12,6 +14,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [debouncedSearchValue, setDebouncedSearchValue] = useState('');
+  const [trendingMovies, setTrendingMovies] = useState([]);
 
   const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
@@ -31,7 +34,7 @@ export default function App() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const fetchTrendingMovies = async (query, page) => {
+  const fetchMovies = async (query, page) => {
     setLoading(true);
     setErrorMessage('');
 
@@ -58,7 +61,9 @@ export default function App() {
           page === 1 ? data.results : [...prev, ...data.results]
         );
       }
-
+      if(query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0]);
+      }
     } catch (err) {
       setErrorMessage('Network error, please try again later');
       console.error(err);
@@ -67,9 +72,18 @@ export default function App() {
     }
   };
 
-  // ✅ Fetch whenever searchValue or page changes
-  useEffect(() => {
-    fetchTrendingMovies(debouncedSearchValue, page);
+   const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+
+      setTrendingMovies(movies);
+    } catch (error) {
+      console.error(`Error fetching trending movies: ${error}`);
+    }
+  }
+
+    useEffect(() => {
+    fetchMovies(debouncedSearchValue, page);
   }, [debouncedSearchValue, page]);
 
   useEffect(() => {
@@ -77,6 +91,9 @@ export default function App() {
   setMovies([]);
   }, [debouncedSearchValue]);
 
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
 
   return (
     <main>
@@ -89,6 +106,21 @@ export default function App() {
 
           <Search searchValue={searchValue} setSearchValue={setSearchValue} />
         </header>
+        
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+
+            <ul>
+              {trendingMovies.map((movie, index) => (
+                <li key={movie.$id}>
+                  <p>{index + 1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className='all-movies'>
           <h2>All Movies</h2>
@@ -100,12 +132,11 @@ export default function App() {
           ) : (
             <ul>
               {movies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
+                <MovieCard key={uuidv4()} movie={movie} />
               ))}
             </ul>
           )}
 
-          {/* ✅ bottom spinner for infinite scroll */}
           {loading && page > 1 && <Spinner />}
         </section>
       </div>
