@@ -5,12 +5,13 @@ export default function MovieCard({movie:{poster_path, title, original_language,
   return (
     <div className="movie-card">
 
-      <img src={poster_path 
-    ? `https://image.tmdb.org/t/p/w500/${poster_path}` 
-    : {noPoster}
-  } 
-  alt={title} 
+      <img src={poster_path
+        ? `https://image.tmdb.org/t/p/w500/${poster_path}`
+        : noPoster
+        } 
+        alt={title} 
       />
+
       <div className='mt-5'>
         <h3>{title}</h3>
 
