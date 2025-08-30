@@ -98,7 +98,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser to view the 
 
 ## <a name="links">🔗 Links</a>
 
-A live project link is [here]()
+A live project link is [here](https://movie-night-ofarouq310s-projects.vercel.app/)
 
 ## <a name="more">🚀 More</a>
 
